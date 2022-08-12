@@ -7,8 +7,11 @@ import {
 } from "../components";
 import { useStoreActions } from "../hooks/storeHooks";
 import { Navigation } from "../types";
+import { Box, Button, ChevronRightIcon, Heading } from "native-base";
 
 import { generateMnemonic, mnemonicToSeed, accountFromSeed } from "../utils";
+import { Keyboard, TextInput } from "react-native";
+import { useWalletState } from "../state/wallet";
 
 type Props = {
   navigation: Navigation;
@@ -18,9 +21,12 @@ const SetPinScreen = ({ navigation }: Props) => {
   const initialMessage = "Create your passcode";
   const confirmMessage = "Confirm your passcode";
   const [pinMessage, setPinMessage] = useState(initialMessage);
-  const [pin, setPin] = useState([]);
-  const [pin1, setPin1] = useState([]);
+  const [pin, setPin] = useState("");
+  const [pin0, setPin0] = useState("");
+  const [pin1, setPin1] = useState("");
   const [pinOk, setPinOk] = useState(false);
+
+  const walletState = useWalletState();
 
   const addWallet = useStoreActions((actions) => actions.addWallet);
   const addDefaultAccount = useStoreActions(
@@ -29,61 +35,99 @@ const SetPinScreen = ({ navigation }: Props) => {
 
   const addAccount = useStoreActions((actions) => actions.addAccount);
 
-  useEffect(() => {
-    if (pin.length === 4 && pin1.length === 0) {
-      setPin1(pin);
-      setPin([]);
-      setPinMessage(confirmMessage);
-    }
+  async function generate() {
+    console.log("generating");
 
-    if (pin.length === 4 && pin1.length === 4) {
-      if (JSON.stringify(pin) === JSON.stringify(pin1)) {
-        setPinOk(true);
-      } else {
-        setPinMessage("Create your passcode");
-        setPin([]);
-        setPin1([]);
-      }
-    }
-  }, [pin]);
+    console.log("creating wallet");
 
-  const _onPressNumber = (n: number) => {
-    setPin([...pin, n]);
-  };
+    // addDefaultAccount();
+    console.log("adding wallet");
+    console.log("added wallet");
+  }
 
-  useEffect(() => {
-    async function generate() {
-      const mnemonic = await generateMnemonic();
-      const seed = await mnemonicToSeed(mnemonic);
-
-      addWallet({
-        passcode: pin.join(""),
-        mnemonic: mnemonic,
-        seed: seed,
-      });
-
-      addDefaultAccount();
-
-      addAccount({
-        index: 1,
-        title: "Donations",
-        derivationPath: "bip44Change",
-      });
-    }
-
+  React.useEffect(() => {
     if (pinOk) {
-      generate();
+      walletState.addWallet(pin);
     }
   }, [pinOk]);
 
-  return (
-    <Background noMenu skipHeader>
-      <BackButton goBack={() => navigation.navigate("Onboarding")} />
-      <Header>{pinMessage}</Header>
+  const _onPressNumber = React.useCallback(
+    (input: string) => {
+      if (input.length > 4) return;
+      if (!/^-?\d*\d*$/.test(input)) return;
 
-      <NumberKeyboard onPress={_onPressNumber} pin={pin} />
+      setPin(input);
+
+      if (pin0.length < 4) {
+        setPin0(input);
+        if (input.length === 4) {
+          setPinMessage(confirmMessage);
+          setPin("");
+        }
+        return;
+      }
+
+      if (pin0.length === 4 && input.length < 4) {
+        setPin1(input);
+        return;
+      }
+
+      console.log("waldo", pin0.length, input.length);
+      if (pin0.length === 4 && input.length === 4) {
+        Keyboard.dismiss();
+
+        if (pin0 === input) {
+          console.log("d");
+          setPinOk(true);
+        } else {
+          console.log("f");
+          setPinMessage("Create your passcode");
+          setPin("");
+          setPin0("");
+          setPin1("");
+        }
+      }
+    },
+    [pin0, pin1]
+  );
+
+  return (
+    <Background>
+      <Box width="100%" justifyContent="space-evenly" pt="20">
+        <BackButton goBack={() => navigation.navigate("Onboarding")} />
+        <Heading textAlign="center" fontSize="xl" color="#94F3E4">
+          {pinMessage}
+        </Heading>
+        <Box
+          height="50%"
+          width="100%"
+          justifyContent="center"
+          alignItems="center"
+        >
+          <Box width="50%" borderColor="grey" borderWidth={1} rounded="xl">
+            <TextInput
+              style={{
+                height: 40,
+                margin: 12,
+                padding: 10,
+                color: "#94F3E4",
+                textAlign: "center",
+                fontSize: 24,
+              }}
+              secureTextEntry={true}
+              value={pin}
+              onChangeText={_onPressNumber}
+              keyboardType="numeric"
+              maxLength={4}
+            />
+          </Box>
+        </Box>
+      </Box>
     </Background>
   );
 };
+
+/*
+ */
 
 export default memo(SetPinScreen);

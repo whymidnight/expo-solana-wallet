@@ -1,3 +1,5 @@
+import { MaterialIcons } from "@expo/vector-icons";
+import { Pressable } from "native-base";
 import React, { memo } from "react";
 import { TouchableOpacity, Image, StyleSheet } from "react-native";
 import { getStatusBarHeight } from "react-native-status-bar-height";
@@ -7,12 +9,9 @@ type Props = {
 };
 
 const BackButton = ({ goBack }: Props) => (
-  <TouchableOpacity onPress={goBack} style={styles.container}>
-    <Image
-      style={styles.image}
-      source={require("../assets/images/arrow_back.png")}
-    />
-  </TouchableOpacity>
+  <Pressable onPress={goBack}>
+    <MaterialIcons name="arrow-back" size={24} color="white" />
+  </Pressable>
 );
 
 const styles = StyleSheet.create({

@@ -9,7 +9,7 @@ const LAMPORTS_PER_SOL = solanaWeb3.LAMPORTS_PER_SOL;
 const SPL_TOKEN = "FyUYPbYiEFjC5LG4oYqdBfiA6PwgC78kbVyWAoYkwMTC";
 
 const createConnection = () => {
-  return new solanaWeb3.Connection(solanaWeb3.clusterApiUrl("devnet"));
+  return new solanaWeb3.Connection("https://ssc-dao.genesysgo.net");
 };
 
 const getBalance = async (publicKey) => {
@@ -24,14 +24,10 @@ const getBalance = async (publicKey) => {
   return sol;
 };
 
-const getHistory = async (publicKeyString, options = { limit: 20 }) => {
-  const connection = createConnection();
-  const history = await connection.getConfirmedSignaturesForAddress2(
-    publicKeyFromString(publicKeyString),
-    options
-  );
+const getHistory = async (publicKey: string) => {
+  const history = await fetch(String("https://hyper.solana.fm/v3/account-transfers/" + publicKey))
 
-  return history;
+  return history.json();
 };
 
 const getSolanaPrice = async () => {
@@ -62,15 +58,15 @@ const publicKeyFromString = (publicKeyString: string) => {
   return new solanaWeb3.PublicKey(publicKeyString);
 };
 
-const transaction = async (from, to, amount) => {
+const transaction = async (from: solanaWeb3.Keypair, to, amount) => {
   console.log("Executing transaction...");
   console.log(amount);
 
   const transaction = new solanaWeb3.Transaction().add(
     solanaWeb3.SystemProgram.transfer({
-      fromPubkey: publicKeyFromString(from.keyPair.publicKey.toString()),
+      fromPubkey: from.publicKey,
       toPubkey: publicKeyFromString(to),
-      lamports: amount * LAMPORTS_PER_SOL,
+      lamports: amount,
     })
   );
 
@@ -79,7 +75,7 @@ const transaction = async (from, to, amount) => {
   const signature = await solanaWeb3.sendAndConfirmTransaction(
     connection,
     transaction,
-    [from.keyPair]
+    [from]
   );
   console.log("SIGNATURE", signature);
 };
@@ -121,6 +117,64 @@ const getTokenBalance = async (publicKey: string, splToken: string) => {
     return 0;
   }
 };
+
+import * as anchor from "@project-serum/anchor";
+
+const sleep = (ms: number): Promise<void> => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
+export const awaitTransactionSignatureConfirmation = async (
+  txid: string,
+  connection: solanaWeb3.Connection,
+  queryStatus = false
+): Promise<solanaWeb3.SignatureStatus | null | void> => {
+  let confirmations = 0;
+  let done = false;
+  let status: solanaWeb3.SignatureStatus | null | void = {
+    slot: 0,
+    confirmations: 0,
+    err: null,
+  };
+  status = await new Promise(async (resolve, reject) => {
+
+    while (!done && queryStatus && confirmations < 40) {
+      // eslint-disable-next-line no-loop-func
+      (async () => {
+        try {
+          const signatureStatuses = await connection.getSignatureStatuses([
+            txid,
+          ]);
+          status = signatureStatuses && signatureStatuses.value[0];
+          if (!done) {
+            if (!status) {
+            } else if (status.err) {
+              done = true;
+              reject(status.err);
+            } else if (!status.confirmations) {
+              if (status.confirmationStatus === "finalized") {
+                done = true;
+                resolve(status);
+              }
+
+            }
+          }
+        } catch (e) {
+          if (!done) {
+            console.log("REST connection error: txid", txid, e);
+          }
+        }
+      })();
+      await sleep(2000);
+    }
+  });
+
+  done = true;
+  console.log("Returning status", status);
+  return status;
+};
+
+
 
 export {
   LAMPORTS_PER_SOL,

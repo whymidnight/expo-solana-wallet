@@ -5,6 +5,9 @@ import { ethers } from "ethers";
 import { Buffer } from "buffer";
 import * as ed25519 from "ed25519-hd-key";
 import nacl from "tweetnacl";
+const bip39 = require("bip39");
+
+
 
 export const DERIVATION_PATH = {
   bip44Change: "bip44Change",
@@ -17,8 +20,9 @@ const generateMnemonic = async () => {
 };
 
 const mnemonicToSeed = async (mnemonic: string) => {
-  const bip39 = await import("bip39");
+  console.log("...", bip39);
   const seed = await bip39.mnemonicToSeed(mnemonic);
+  console.log("rrr,,,,,");
   return Buffer.from(seed).toString("hex");
 };
 
@@ -42,7 +46,7 @@ const accountFromSeed = (
 
 const maskedAddress = (address: string) => {
   if (!address) return;
-  return `${address.slice(0, 8)}...${address.slice(address.length - 8)}`;
+  return `${address.slice(0, 4)}...${address.slice(address.length - 4)}`;
 };
 
 const deriveSeed = (

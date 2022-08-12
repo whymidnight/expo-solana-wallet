@@ -1,187 +1,151 @@
+import { MaterialIcons } from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
 import React, { useEffect, useCallback, useState } from "react";
-import { StyleSheet, View } from "react-native";
-import {
-  Background2 as Background,
-  PriceHeader,
-  Button,
-  Title,
-  Paragraph,
-} from "../components";
-import { Avatar, Card, Menu, useTheme } from "react-native-paper";
+import { Background2 as Background, PriceHeader } from "../components";
+import { View, Image, Text, HStack, Box, ScrollView } from "native-base";
 import { Navigation } from "../types";
 import { useFocusEffect } from "@react-navigation/native";
 
 import { useStoreState } from "../hooks/storeHooks";
 
 import { accountFromSeed } from "../utils";
-import {
-  SPL_TOKEN,
-  getBalance,
-  getHistory,
-  getSolanaPrice,
-  getTokenBalance,
-} from "../api";
+import { getBalance, getSolanaPrice } from "../api";
 
 type Props = {
   navigation: Navigation;
 };
 
-import { maskedAddress } from "../utils";
+import HeaderBar from "../components/HeaderBar";
+import { AccountInfo } from "../components/AccountInfo";
+import { useWalletState } from "../state/wallet";
+
+interface Account {
+  index: string;
+  title: string;
+  keyPair: any;
+}
 
 const DashboardScreen = ({ navigation }: Props) => {
-  const { colors } = useTheme();
-
-  const wallet = useStoreState((state) => state.wallet);
-  const accounts = useStoreState((state) => state.accounts);
-
-  const [account, setAccount] = useState({});
-
-  useEffect(() => {
-    async function generate() {
-      const currentAccount = accounts[0];
-      setAccount({
-        index: currentAccount.index,
-        title: currentAccount.title,
-        keyPair: accountFromSeed(
-          wallet.seed,
-          currentAccount.index,
-          currentAccount.derivationPath,
-          0
-        ),
-      });
-    }
-
-    generate();
-  }, []);
-
-  const [balance, setBalance] = useState({
-    usd: 0.0,
-    sol: 0,
-  });
-
-  // const [history, setHistory] = useState("");
-
-  useFocusEffect(
-    useCallback(() => {
-      async function getAsyncBalance() {
-        if (account?.keyPair?.publicKey?.toString()) {
-          const sol = await getBalance(account.keyPair.publicKey.toString());
-          const usdPrice = await getSolanaPrice();
-
-          setBalance({
-            sol,
-            usd: (sol * usdPrice).toFixed(2),
-          });
-        }
-      }
-      getAsyncBalance();
-    }, [account])
-  );
-
-  // useEffect(() => {
-  //   async function generate() {
-  //     const _history = await getHistory(wallet.account);
-  //     console.log(_history);
-  //   }
-  //
-  //   generate();
-  // }, []);
-
-  // console.log(account.keyPair.publicKey.toString());
-
-  // Menu
-  const [visible, setVisible] = React.useState(false);
-  const openMenu = () => setVisible(true);
-  const closeMenu = () => setVisible(false);
-
-  const changeAccount = (index: number) => {
-    const currentAccount = accounts[index];
-    setAccount({
-      index: currentAccount.index,
-      title: currentAccount.title,
-      keyPair: accountFromSeed(
-        wallet.seed,
-        currentAccount.index,
-        currentAccount.derivationPath,
-        0
-      ),
-    });
-    closeMenu();
-  };
-
-  const [tokenBalance, setTokenBalance] = useState(0);
-
-  useEffect(() => {
-    async function getBalance() {
-      const balance = await getTokenBalance(
-        account.keyPair.publicKey.toString(),
-        SPL_TOKEN
-      );
-      setTokenBalance(balance);
-    }
-
-    if (Object.keys(account).length > 0) {
-      // getBalance();
-    }
-  }, [account]);
+  const walletState = useWalletState().get();
 
   return (
-    <Background navigation={navigation}>
-      <PriceHeader usd={balance.usd} sol={balance.sol} />
-
-      <View style={styles.container}>
-        <Menu
-          visible={visible}
-          onDismiss={closeMenu}
-          anchor={
-            <Button onPress={openMenu}>{`${account?.title} address`}</Button>
+    <>
+      <Background navigation={navigation}>
+        <HeaderBar
+          toggleDrawer={
+            //@ts-ignore
+            navigation.toggleDrawer
           }
-        >
-          {accounts.map((account) => (
-            <Menu.Item
-              key={account.index}
-              onPress={() => changeAccount(account.index)}
-              title={account.title}
-              titleStyle={{ color: colors.primary }}
-            />
-          ))}
-        </Menu>
-
-        <Card
-          style={styles.card}
-          onPress={() => navigation.navigate("Receive")}
-        >
-          <Card.Title
-            title={maskedAddress(account?.keyPair?.publicKey?.toString())}
-            left={(props) => <Avatar.Icon {...props} icon="qrcode" />}
-          />
-        </Card>
-
-        { /*
-        <Title>My SPL Token</Title>
-        <Paragraph>{`Balance: ${tokenBalance}`}</Paragraph>
-       */ }
-      </View>
-
-      {/*
-      <View style={styles.container}>
-        <Title>Activity</Title>
-      </View>
-      */}
-    </Background>
+        />
+        <ScrollView>
+          <View style={{ paddingTop: "5%" }}>
+            <PriceHeader />
+            <HStack pt="10" justifyContent="space-evenly">
+              <Box justifyContent="center" alignItems="center">
+                <Box
+                  m="2"
+                  style={{
+                    borderColor: "4px rgb(55, 170, 156)",
+                    borderWidth: 5,
+                    borderStyle: "solid",
+                    borderRadius: 50,
+                  }}
+                >
+                  <Box p="5">
+                    <AntDesign name="arrowup" size={24} color="white" />
+                  </Box>
+                </Box>
+                <Text
+                  pt="2"
+                  justifyContent="center"
+                  alignItems="center"
+                  fontSize="md"
+                  color="white"
+                >
+                  Send
+                </Text>
+              </Box>
+              <Box justifyContent="center" alignItems="center">
+                <Box
+                  m="2"
+                  style={{
+                    borderColor: "4px rgb(55, 170, 156)",
+                    borderWidth: 5,
+                    borderStyle: "solid",
+                    borderRadius: 50,
+                  }}
+                >
+                  <Box p="5">
+                    <AntDesign name="arrowdown" size={24} color="white" />
+                  </Box>
+                </Box>
+                <Text
+                  pt="2"
+                  justifyContent="center"
+                  alignItems="center"
+                  fontSize="md"
+                  color="white"
+                >
+                  Receive
+                </Text>
+              </Box>
+              <Box justifyContent="center" alignItems="center">
+                <Box
+                  m="2"
+                  style={{
+                    borderColor: "4px rgb(55, 170, 156)",
+                    borderWidth: 5,
+                    borderStyle: "solid",
+                    borderRadius: 50,
+                  }}
+                >
+                  <Box p="5">
+                    <MaterialIcons name="swap-calls" size={24} color="white" />
+                  </Box>
+                </Box>
+                <Text
+                  pt="2"
+                  justifyContent="center"
+                  alignItems="center"
+                  fontSize="md"
+                  color="white"
+                >
+                  Swap
+                </Text>
+              </Box>
+              <Box justifyContent="center" alignItems="center">
+                <Box
+                  m="2"
+                  style={{
+                    borderColor: "4px rgb(55, 170, 156)",
+                    borderWidth: 5,
+                    borderStyle: "solid",
+                    borderRadius: 50,
+                  }}
+                >
+                  <Box p="5">
+                    <MaterialIcons name="add-box" size={24} color="white" />
+                  </Box>
+                </Box>
+                <Text
+                  pt="2"
+                  justifyContent="center"
+                  alignItems="center"
+                  fontSize="md"
+                  color="white"
+                >
+                  Buy
+                </Text>
+              </Box>
+            </HStack>
+            <Box pt="20">
+              <AccountInfo navigation={navigation} />
+            </Box>
+          </View>
+        </ScrollView>
+      </Background>
+    </>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    width: "100%",
-    alignItems: "center",
-    marginTop: 100,
-  },
-  card: {
-    width: "100%",
-    backgroundColor: "rgba(52, 52, 52, 0.2)",
-  },
-});
 
 export default DashboardScreen;

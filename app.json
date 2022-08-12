@@ -19,7 +19,8 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "io.triptychlabs.wallet"
     },
     "android": {
       "adaptiveIcon": {

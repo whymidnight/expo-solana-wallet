@@ -1,9 +1,6 @@
 import React, { memo } from "react";
-import {
-  ImageBackground,
-  StyleSheet,
-  KeyboardAvoidingView,
-} from "react-native";
+import { View, StyleSheet, KeyboardAvoidingView } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 
 type Props = {
   children: React.ReactNode;
@@ -11,40 +8,21 @@ type Props = {
 };
 
 const Background = ({ children, position }: Props) => (
-  <ImageBackground
-    source={require("../assets/images/background.jpg")}
-    resizeMode="cover"
-    style={styles.background}
+  <LinearGradient
+    colors={["#0f2027", "#203a43", "#2c5364"]}
+    style={{ height: "100%" }}
   >
-    <KeyboardAvoidingView
-      style={[
-        styles.container,
-        position === "bottom" ? styles.bottom : undefined,
-      ]}
-      behavior="padding"
-    >
-      {children}
-    </KeyboardAvoidingView>
-  </ImageBackground>
+    <View style={styles.view}>
+      <KeyboardAvoidingView>{children}</KeyboardAvoidingView>
+    </View>
+  </LinearGradient>
 );
 
 const styles = StyleSheet.create({
-  background: {
+  view: {
     flex: 1,
-    width: "100%",
-  },
-  container: {
-    flex: 1,
-    padding: 20,
-    width: "100%",
-    maxWidth: 340,
-    alignSelf: "center",
     alignItems: "center",
     justifyContent: "center",
-  },
-
-  bottom: {
-    justifyContent: "flex-end",
   },
 });
 
