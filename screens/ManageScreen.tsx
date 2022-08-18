@@ -1,5 +1,14 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { StyleSheet, View, TextInput, Linking } from "react-native";
+import { AntDesign } from "@expo/vector-icons";
+
+import {
+  StyleSheet,
+  View,
+  TextInput,
+  Linking,
+  ScrollView,
+  RefreshControl,
+} from "react-native";
 import { Background2 as Background, BackButton } from "../components";
 import HeaderBar from "../components/HeaderBar/index";
 import {
@@ -13,6 +22,7 @@ import {
   FlatList,
   VStack,
   Pressable,
+  ChevronDownIcon,
 } from "native-base";
 import { Navigation } from "../types";
 
@@ -24,12 +34,20 @@ import {
   useRoute,
 } from "@react-navigation/native";
 
-import { getBalance, getHistory, getSolanaPrice, transaction } from "../api";
+import {
+  findAssociatedTokenAddress,
+  getBalance,
+  getHistory,
+  getSolanaPrice,
+  transaction,
+  tokenTransfer,
+} from "../api";
 
 import { accountFromSeed, maskedAddress } from "../utils";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useWalletState } from "../state/wallet";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import { useManageState } from "../state/manage";
 
 type Props = {
   navigation: Navigation;
@@ -45,6 +63,7 @@ const ManageScreen = ({ navigation }: Props) => {
   const accounts = useStoreState((state) => state.accounts);
 
   const walletState = useWalletState();
+  const manageState = useManageState();
 
   const route = useRoute();
 
@@ -67,6 +86,15 @@ const ManageScreen = ({ navigation }: Props) => {
     setAmount({ solana: Number(amount), usd });
   };
 
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    new Promise((resolve) => setTimeout(resolve, 2000)).then(() =>
+      setRefreshing(false)
+    );
+  }, []);
+
   const makeTransfer = useCallback(() => {
     const gotWalletState = walletState.get();
     const account = accountFromSeed(
@@ -80,10 +108,21 @@ const ManageScreen = ({ navigation }: Props) => {
       setIsProcessing(true);
       setTransferText("Sending transfer...");
 
-      const amountFmt = Number(toAmount) * LAMPORTS_PER_SOL;
+      const amountFmt =
+        Number(toAmount) * Math.pow(10, manageState.get().meta.decimals);
 
-      console.log(amountFmt, toAddress, account.publicKey.toString());
-      await transaction(account, toAddress, amountFmt);
+      if (manageState.get().currency === "native") {
+        await transaction(account, toAddress, amountFmt);
+      }
+      if (manageState.get().currency === "token") {
+        await tokenTransfer(
+          account,
+          new PublicKey(toAddress),
+          new PublicKey(manageState.get().currencyAddress!),
+          amountFmt
+        );
+      }
+
       setTransferText("Transfer completed!");
       setToAddress("");
       setToAmount(0);
@@ -92,20 +131,24 @@ const ManageScreen = ({ navigation }: Props) => {
     };
 
     sendTransaction();
-  }, [walletState]);
+  }, [walletState, manageState]);
 
-  const onAmountChange = useCallback((text) => {
-    console.log(text);
-    // if (!/^\d+\.\d{0,2}$/.test(text)) return;
+  const onAmountChange = useCallback(
+    (text) => {
+      // if (!/^\d+\.\d{0,2}$/.test(text)) return;
 
-    setToAmount(text);
-  }, []);
+      setToAmount(text);
+    },
+    [manageState]
+  );
 
   useFocusEffect(
     useCallback(() => {
       setToAddress(route.params?.data);
     }, [])
   );
+
+  useEffect(() => {}, []);
 
   const refreshMeta = useCallback(() => {
     const gotWalletState = walletState.get();
@@ -117,25 +160,30 @@ const ManageScreen = ({ navigation }: Props) => {
     );
 
     async function init() {
-      setBalance(await getBalance(account.publicKey.toString()));
-      setSolanaPrice(await getSolanaPrice());
+      const allSettled = (promises) => {
+        return Promise.all(
+          promises.map((promise) =>
+            promise
+              .then((value) => ({ state: "fulfilled", value }))
+              .catch((reason) => ({ state: "rejected", reason }))
+          )
+        );
+      };
+      const [_history] = await allSettled([
+        getHistory(
+          manageState.get().currency,
+          manageState.get().currency === "native"
+            ? [manageState.get().currencyAddress]
+            : [manageState.get().currencyAddress, account.publicKey.toString()]
+        ),
+      ]);
 
-      var history = await getHistory(account.publicKey.toString());
-      history = Object.keys(history).reduce((acc, item) => {
-        if (
-          history[item].filter(({ status }) => status !== "Successful").length >
-          0
-        )
-          return acc;
-
-        return { ...acc, [item]: history[item] };
-      }, {});
+      console.log("refreshing", manageState.get().meta.amount);
+      var history = _history.value;
       history = Object.keys(history)
         .sort((a, b) => {
-          const left = history[a][0];
-          const right = history[b][0];
-          console.log("left", a, left);
-          console.log("right", b, right);
+          const left = history[a];
+          const right = history[b];
 
           if (left.timestamp < right.timestamp) {
             return 1;
@@ -149,12 +197,11 @@ const ManageScreen = ({ navigation }: Props) => {
         .reduce((acc, item) => {
           return { ...acc, [item]: history[item] };
         }, {});
-      console.log(history);
       setHistory(history);
     }
 
     init();
-  }, [walletState, lastEpoch]);
+  }, [refreshing]);
 
   useEffect(() => {
     const interval = setInterval(refreshMeta, 5000);
@@ -221,7 +268,9 @@ const ManageScreen = ({ navigation }: Props) => {
                           onChangeText={onAmountChange}
                           keyboardType="decimal-pad"
                         />
-                        <Text color="#37AA9C">SOL</Text>
+                        <Text color="#37AA9C">
+                          {manageState.get().meta.symbol}
+                        </Text>
                       </HStack>
                     </Box>
                     <Box
@@ -289,139 +338,222 @@ const ManageScreen = ({ navigation }: Props) => {
           () => navigation.dispatch(DrawerActions.toggleDrawer())
         }
       />
-      <Box pt="20%">
-        <Box
-          rounded="xl"
-          justifyContent="center"
-          alignItems="center"
-          m="5"
-          height="20"
-        >
-          <Heading fontSize="5xl" color="white">
-            {balance.toFixed(8)} SOL
-          </Heading>
-        </Box>
-        <Box height="50" alignItems="center" width="100%">
-          <Box width="50%" alignItems="center" flexDirection="row">
-            <Box pr="15" alignItems="center" width="50%">
-              <Button
-                rounded="3xl"
-                width="100"
-                onPress={() => {
-                  setShowModal(true);
-                  setToAmount(0);
-                  setToAddress("");
-                  setIsProcessing(false);
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            colors={["white", "white"]}
+            tintColor="white"
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        }
+      >
+        <Box pt="20%">
+          <Box
+            rounded="xl"
+            justifyContent="center"
+            alignItems="center"
+            m="5"
+            height="20"
+          >
+            <HStack alignItems="center" justifyContent="space-around">
+              <Heading fontSize="4xl" color="white">
+                {manageState.get().meta.amount}{" "}
+              </Heading>
+              <Pressable
+                style={{
+                  borderColor: "0px rgba(0, 0, 0, 0)",
+                  borderBottomColor: "4px rgb(55, 170, 156)",
+                  borderWidth: 2,
+                  borderStyle: "solid",
                 }}
               >
-                Send
-              </Button>
-            </Box>
-            <Box pl="15" alignItems="center" width="50%">
-              <Button rounded="3xl" width="100">
-                Receive
-              </Button>
+                <HStack m="2">
+                  <VStack>
+                    <Heading fontSize="4xl" color="white">
+                      {manageState.get().meta!.symbol}
+                    </Heading>
+                  </VStack>
+                </HStack>
+              </Pressable>
+            </HStack>
+          </Box>
+          <Box height="50" alignItems="center" width="100%">
+            <Box width="50%" alignItems="center" flexDirection="row">
+              <Box pr="15" alignItems="center" width="50%">
+                <Button
+                  rounded="3xl"
+                  width="100"
+                  onPress={() => {
+                    setShowModal(true);
+                    setToAmount(0);
+                    setToAddress("");
+                    setIsProcessing(false);
+                  }}
+                >
+                  Send
+                </Button>
+              </Box>
+              <Box pl="15" alignItems="center" width="50%">
+                <Button rounded="3xl" width="100">
+                  Receive
+                </Button>
+              </Box>
             </Box>
           </Box>
-        </Box>
-        <Heading size="md" pt="5" pl="8" color="white">
-          Recent Transactions
-        </Heading>
-        <Box
-          m="5"
-          pl="3"
-          pr="3"
-          rounded="xl"
-          backgroundColor="rgba(51, 63, 68, 0.2)"
-        >
-          <FlatList
-            data={Object.keys(history)}
-            renderItem={(transactionSignature) => {
-              const gotWalletState = walletState.get();
-              const account = accountFromSeed(
-                gotWalletState.wallet!.seed,
-                gotWalletState.selectedAccount,
-                "bip44Change",
-                0
-              );
-              console.log(history[transactionSignature.item]);
-              const item = history[transactionSignature.item].filter(
-                (record) => record.action === "transfer"
-              )[0];
+          <Heading size="md" pt="5" pl="8" color="white">
+            Recent Transactions
+          </Heading>
+          <Box
+            m="3"
+            pl="3"
+            pr="3"
+            height="400"
+            rounded="xl"
+            backgroundColor="rgba(51, 63, 68, 0.2)"
+          >
+            <FlatList
+              data={Object.keys(history)}
+              renderItem={(transactionSignature) => {
+                const gotWalletState = walletState.get();
+                const account = accountFromSeed(
+                  gotWalletState.wallet!.seed,
+                  gotWalletState.selectedAccount,
+                  "bip44Change",
+                  0
+                );
+                //@ts-ignore
+                const item = history[transactionSignature.item];
 
-              const actions = ["Sent", "Received"];
-              const directions = ["To", "From"];
-              let subjugate = "";
-              let tion = -1;
+                const actions = ["Sent", "Received"];
+                const directions = ["To", "From"];
+                let subjugate = "";
+                let tion = -1;
 
-              if (item.source === account.publicKey.toString()) {
-                tion = 0;
-                subjugate = item.destination;
-              }
-              if (item.destination === account.publicKey.toString()) {
-                tion = 1;
-                subjugate = item.source;
-              }
+                if (item.source === account.publicKey.toString()) {
+                  tion = 0;
+                  subjugate = item.destination;
+                }
+                if (item.destination === account.publicKey.toString()) {
+                  tion = 1;
+                  subjugate = item.source;
+                }
 
-              // console.log(item);
-              return (
-                <Box
-                  m="2"
-                  pl="4"
-                  pr="4"
-                  py="2"
-                  rounded="xl"
-                  backgroundColor="#1A1A1B"
-                >
-                  <Pressable
-                    onPress={() =>
-                      Linking.openURL(
-                        `https://solana.fm/tx/${transactionSignature.item}`
-                      )
-                    }
+                let amountFmt = 0;
+                if (manageState.get().currency === "native") {
+                  if (item.source === account.publicKey.toString()) {
+                    tion = 0;
+                    subjugate = item.destination;
+                  }
+                  if (item.destination === account.publicKey.toString()) {
+                    tion = 1;
+                    subjugate = item.source;
+                  }
+                }
+                if (manageState.get().currency === "token") {
+                  if (item.source === manageState.get().meta.ata) {
+                    tion = 0;
+                    subjugate = item.destination;
+                  }
+                  if (item.destination === manageState.get().meta.ata) {
+                    tion = 1;
+                    subjugate = item.source;
+                  }
+                }
+                amountFmt =
+                  item.amount / Math.pow(10, manageState.get().meta.decimals);
+
+                return (
+                  <Box
+                    m="2"
+                    pl="3"
+                    pr="3"
+                    py="2"
+                    rounded="xl"
+                    backgroundColor="#1A1A1B"
                   >
-                    <HStack justifyContent="space-between">
-                      <HStack>
-                        <Box pr="5" justifyContent="center" alignItems="center">
-                          <MaterialCommunityIcons
-                            name="card-account-details"
-                            size={24}
-                            color="white"
-                          />
-                        </Box>
+                    <Pressable
+                      onPress={() =>
+                        Linking.openURL(
+                          `https://solana.fm/tx/${transactionSignature.item}`
+                        )
+                      }
+                    >
+                      <HStack justifyContent="space-between">
+                        <HStack>
+                          <Box
+                            pr="3"
+                            justifyContent="center"
+                            alignItems="center"
+                          >
+                            {tion === 0 ? (
+                              <AntDesign
+                                name="arrowup"
+                                size={24}
+                                color="white"
+                              />
+                            ) : (
+                              <AntDesign
+                                name="arrowdown"
+                                size={24}
+                                color="white"
+                              />
+                            )}
+                          </Box>
+                          <VStack>
+                            <Text
+                              alignSelf="flex-start"
+                              fontSize={12}
+                              color="white"
+                            >
+                              {actions[tion]}{" "}
+                              {Number(amountFmt).toFixed(
+                                manageState.get().meta.decimals > 3
+                                  ? 4
+                                  : manageState.get().meta.decimals
+                              )}{" "}
+                              {manageState.get().meta.symbol}
+                            </Text>
+                            <Text
+                              fontSize={12}
+                              alignSelf="flex-start"
+                              color="white"
+                            >
+                              {directions[tion]} {maskedAddress(subjugate)}
+                            </Text>
+                          </VStack>
+                        </HStack>
                         <VStack>
-                          <Text alignSelf="flex-start" color="white">
-                            {actions[tion]}{" "}
-                            {Number(item.amount / LAMPORTS_PER_SOL).toFixed(4)}{" "}
-                            SOL
+                          <Text
+                            fontSize={12}
+                            alignSelf="flex-end"
+                            color="white"
+                          >
+                            {new Date(item.timestamp * 1000).toLocaleString()}
                           </Text>
-                          <Text alignSelf="flex-start" color="white">
-                            {directions[tion]} {maskedAddress(subjugate)}
+                          <Text
+                            fontSize={12}
+                            alignSelf="flex-end"
+                            color="white"
+                          >
+                            {"Via "}
+                            {transactionSignature.item.slice(0, 4)}
+                            {"..."}
+                            {transactionSignature.item.slice(
+                              transactionSignature.item.length - 4,
+                              transactionSignature.item.length
+                            )}
                           </Text>
                         </VStack>
                       </HStack>
-                      <VStack>
-                        <Text alignSelf="flex-end" color="white">
-                          {"Via "}
-                          {transactionSignature.item.slice(0, 4)}
-                          {"..."}
-                          {transactionSignature.item.slice(
-                            transactionSignature.item.length - 4,
-                            transactionSignature.item.length
-                          )}
-                        </Text>
-                        <Text alignSelf="flex-end" color="white">
-                          {new Date(item.timestamp * 1000).toLocaleString()}
-                        </Text>
-                      </VStack>
-                    </HStack>
-                  </Pressable>
-                </Box>
-              );
-            }}
-          />
+                    </Pressable>
+                  </Box>
+                );
+              }}
+            />
+          </Box>
         </Box>
-      </Box>
+      </ScrollView>
     </Background>
   );
 };

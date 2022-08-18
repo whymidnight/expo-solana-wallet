@@ -1,8 +1,8 @@
+import React, { useEffect, useCallback, useState } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
-import React, { useEffect, useCallback, useState } from "react";
 import { Background2 as Background, PriceHeader } from "../components";
-import { View, Image, Text, HStack, Box, ScrollView } from "native-base";
+import { View, Pressable, Text, HStack, Box, ScrollView } from "native-base";
 import { Navigation } from "../types";
 import { useFocusEffect } from "@react-navigation/native";
 
@@ -18,6 +18,7 @@ type Props = {
 import HeaderBar from "../components/HeaderBar";
 import { AccountInfo } from "../components/AccountInfo";
 import { useWalletState } from "../state/wallet";
+import { RefreshControl } from "react-native";
 
 interface Account {
   index: string;
@@ -28,6 +29,16 @@ interface Account {
 const DashboardScreen = ({ navigation }: Props) => {
   const walletState = useWalletState().get();
 
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    console.log("..", refreshing);
+    new Promise((resolve) => setTimeout(resolve, 2000)).then(() =>
+      setRefreshing(false)
+    );
+  }, [refreshing]);
+
   return (
     <>
       <Background navigation={navigation}>
@@ -37,8 +48,18 @@ const DashboardScreen = ({ navigation }: Props) => {
             navigation.toggleDrawer
           }
         />
-        <ScrollView>
-          <View style={{ paddingTop: "5%" }}>
+        <ScrollView
+          style={{ height: "100%" }}
+          refreshControl={
+            <RefreshControl
+              colors={["white", "white"]}
+              tintColor="white"
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+            />
+          }
+        >
+          <View style={{ paddingTop: "5%", height: "100%" }}>
             <PriceHeader />
             <HStack pt="10" justifyContent="space-evenly">
               <Box justifyContent="center" alignItems="center">
@@ -51,9 +72,19 @@ const DashboardScreen = ({ navigation }: Props) => {
                     borderRadius: 50,
                   }}
                 >
-                  <Box p="5">
-                    <AntDesign name="arrowup" size={24} color="white" />
-                  </Box>
+                  <Pressable
+                    _pressed={{
+                      backgroundColor: "rgba(148, 243, 228, 0.3)",
+                      borderRadius: 50,
+                    }}
+                    onPress={() =>
+                      navigation.navigate("Hidden", { screen: "Manage" })
+                    }
+                  >
+                    <Box p="5">
+                      <AntDesign name="arrowup" size={24} color="white" />
+                    </Box>
+                  </Pressable>
                 </Box>
                 <Text
                   pt="2"
@@ -75,9 +106,16 @@ const DashboardScreen = ({ navigation }: Props) => {
                     borderRadius: 50,
                   }}
                 >
-                  <Box p="5">
-                    <AntDesign name="arrowdown" size={24} color="white" />
-                  </Box>
+                  <Pressable
+                    _pressed={{
+                      backgroundColor: "rgba(148, 243, 228, 0.3)",
+                      borderRadius: 50,
+                    }}
+                  >
+                    <Box p="5">
+                      <AntDesign name="arrowdown" size={24} color="white" />
+                    </Box>
+                  </Pressable>
                 </Box>
                 <Text
                   pt="2"
@@ -99,9 +137,20 @@ const DashboardScreen = ({ navigation }: Props) => {
                     borderRadius: 50,
                   }}
                 >
-                  <Box p="5">
-                    <MaterialIcons name="swap-calls" size={24} color="white" />
-                  </Box>
+                  <Pressable
+                    _pressed={{
+                      backgroundColor: "rgba(148, 243, 228, 0.3)",
+                      borderRadius: 50,
+                    }}
+                  >
+                    <Box p="5">
+                      <MaterialIcons
+                        name="swap-calls"
+                        size={24}
+                        color="white"
+                      />
+                    </Box>
+                  </Pressable>
                 </Box>
                 <Text
                   pt="2"
@@ -123,9 +172,16 @@ const DashboardScreen = ({ navigation }: Props) => {
                     borderRadius: 50,
                   }}
                 >
-                  <Box p="5">
-                    <MaterialIcons name="add-box" size={24} color="white" />
-                  </Box>
+                  <Pressable
+                    _pressed={{
+                      backgroundColor: "rgba(148, 243, 228, 0.3)",
+                      borderRadius: 50,
+                    }}
+                  >
+                    <Box p="5">
+                      <MaterialIcons name="add-box" size={24} color="white" />
+                    </Box>
+                  </Pressable>
                 </Box>
                 <Text
                   pt="2"
@@ -139,7 +195,7 @@ const DashboardScreen = ({ navigation }: Props) => {
               </Box>
             </HStack>
             <Box pt="20">
-              <AccountInfo navigation={navigation} />
+              <AccountInfo refreshing={refreshing} navigation={navigation} />
             </Box>
           </View>
         </ScrollView>

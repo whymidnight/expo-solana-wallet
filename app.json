@@ -15,12 +15,10 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "io.triptychlabs.wallet"
+      "bundleIdentifier": "io.triptychlabs.whymidnight.wallet"
     },
     "android": {
       "adaptiveIcon": {
@@ -34,3 +32,4 @@
     }
   }
 }
+

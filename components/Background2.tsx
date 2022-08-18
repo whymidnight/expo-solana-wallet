@@ -7,7 +7,6 @@ import {
   KeyboardAvoidingView,
   View,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 
 import { Navigation } from "../types";
 
@@ -28,27 +27,13 @@ const Background2 = ({
 }: Props) => {
   const [state, setState] = React.useState({ open: false });
 
-  return (
-    <View style={styles.viewBackground}>
-      <KeyboardAvoidingView
-        style={[
-          styles.container,
-          position === "bottom" ? styles.bottom : undefined,
-        ]}
-        keyboardVerticalOffset={200}
-        behavior="padding"
-      >
-        {children}
-      </KeyboardAvoidingView>
-    </View>
-  );
+  return <View style={styles.viewBackground}>{children}</View>;
 };
 
 const styles = StyleSheet.create({
   viewBackground: {
     backgroundColor: "#1A1A1B",
     height: "100%",
-    flex: 1,
     width: "100%",
   },
   background: {

@@ -1,6 +1,6 @@
 import React, { memo } from "react";
 import { View, StyleSheet, KeyboardAvoidingView } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { Box } from "native-base";
 
 type Props = {
   children: React.ReactNode;
@@ -8,14 +8,9 @@ type Props = {
 };
 
 const Background = ({ children, position }: Props) => (
-  <LinearGradient
-    colors={["#0f2027", "#203a43", "#2c5364"]}
-    style={{ height: "100%" }}
-  >
-    <View style={styles.view}>
-      <KeyboardAvoidingView>{children}</KeyboardAvoidingView>
-    </View>
-  </LinearGradient>
+  <Box height="100%" backgroundColor="#1A1A1B">
+    <View style={styles.view}>{children}</View>
+  </Box>
 );
 
 const styles = StyleSheet.create({

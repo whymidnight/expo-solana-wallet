@@ -6,6 +6,7 @@ import "./global";
 
 import "react-native-gesture-handler";
 import "react-native-url-polyfill/auto";
+import "react-native-get-random-values";
 
 import { Provider as PaperProvider } from "react-native-paper";
 import { theme } from "./core/theme";
@@ -19,19 +20,14 @@ import Navigation from "./navigation";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import CreatePersistor from "hookstate-persist";
 
-import { extendTheme, NativeBaseProvider } from "native-base";
-import { LinearGradient } from "expo-linear-gradient";
+import { extendTheme, NativeBaseProvider, Box } from "native-base";
 import { NavigationContainer } from "@react-navigation/native";
 
 import * as Font from "expo-font";
-import AppLoading from "expo-app-loading";
+// import {} from "expo-splash-screen";
 import { walletState } from "./state/wallet";
+import { registerRootComponent } from "expo";
 
-const config = {
-  dependencies: {
-    "linear-gradient": LinearGradient,
-  },
-};
 const newColorTheme = {
   brand: {
     900: "#8287af",
@@ -41,6 +37,8 @@ const newColorTheme = {
 };
 
 const THEME = {
+  useSystemColorMode: false,
+  initialColorMode: "dark",
   colors: newColorTheme,
   fontConfig: {
     LEMONMILK: {
@@ -99,10 +97,10 @@ export default function App() {
   const isLoadingComplete = useCachedResources();
 
   if (!isLoadingComplete || !fontsLoaded) {
-    return <AppLoading />;
+    return <></>;
   } else {
     return (
-      <NativeBaseProvider theme={theme} config={config}>
+      <NativeBaseProvider theme={theme}>
         <StoreProvider store={store}>
           <Navigation />
         </StoreProvider>
@@ -110,3 +108,4 @@ export default function App() {
     );
   }
 }
+
