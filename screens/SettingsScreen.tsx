@@ -6,6 +6,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+const bs58 = require("bs58");
 import { StyleSheet, View } from "react-native";
 import WebviewCrypto from "react-native-webview-crypto";
 import {
@@ -36,6 +37,7 @@ import { PublicKey } from "@solana/web3.js";
 import { useDappState, useUntrackedDappState } from "../state/dapp";
 
 import { observer } from "mobx-react";
+import DappBrowser from "../components/DappBrowser";
 
 type Props = {
   navigation: Navigation;
@@ -71,68 +73,27 @@ const Content = ({ setPrompt }) => {
 
 const BrowserObserver = () => {
   const walletState = useWalletState();
-  const [connected, setConnected] = useState(false);
   const [publicKey, setPublicKey] = useState<string | null>(null);
-  const [modalVisible, setModalVisible] = useState(0);
-  const rnApi = {
-    // return {
-    isTriptychLabs: () => true,
-    isConnected: () => connected,
-    publicKey: () => {
-      const gotWalletState = walletState.get();
-      const account = accountFromSeed(
-        gotWalletState.wallet!.seed,
-        gotWalletState.selectedAccount,
-        "bip44Change",
-        0
-      );
-      return account.publicKey;
-    },
-    publicKeyFmt: () => {
-      const gotWalletState = walletState.get();
-      const account = accountFromSeed(
-        gotWalletState.wallet!.seed,
-        gotWalletState.selectedAccount,
-        "bip44Change",
-        0
-      );
-      return account.publicKey.toString();
-    },
-    connect: async () => {
-      const gotWalletState = walletState.get();
-      const account = accountFromSeed(
-        gotWalletState.wallet!.seed,
-        gotWalletState.selectedAccount,
-        "bip44Change",
-        0
-      );
-      setConnected(true);
-      setPublicKey(account.publicKey.toString());
-    },
-    signMessage: async ({ data }) => {
-      setModalVisible((prev) => prev + 1);
+  const [privateKey, setPrivateKey] = useState<string | null>(null);
 
-      return {
-        signature:
-          "52thb6k13H2VPJLAJGJPxuatC1i4qm8oj7TVqVs44E3ywrRMadVkaeQMfjoxBeJYc4fysgfqWk3GAs9ykiMijqbr",
-      };
-    },
-  };
-  //@ts-ignore
-  const WebViewWithBridge = withWebViewBridge(WebView);
+  useEffect(() => {
+    const gotWalletState = walletState.get();
+    const account = accountFromSeed(
+      gotWalletState.wallet!.seed,
+      gotWalletState.selectedAccount,
+      "bip44Change",
+      0
+    );
+    setPublicKey(account.publicKey.toString());
+
+    setPrivateKey(bs58.encode(account.secretKey));
+  }, []);
+
   return (
     <>
-      <WebViewWithBridge
-        //@ts-ignore
-        javaScriptEnabled={true}
-        //@ts-ignore
-        pullToRefreshEnabled={true}
-        reactNativeApi={rnApi}
-        //@ts-ignore
-        source={{
-          uri: "https://d261-173-11-16-166.ngrok.io",
-        }}
-      />
+      {publicKey !== null && privateKey !== null && (
+        <DappBrowser publicKey={publicKey} privateKey={privateKey} />
+      )}
     </>
   );
 };

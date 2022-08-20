@@ -52,6 +52,16 @@ function BottomTabs() {
   return (
     <Tab.Navigator>
       <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          ...options,
+          tabBarIcon: () => (
+            <MaterialIcons name="privacy-tip" size={24} color="white" />
+          ),
+        }}
+      />
+      <Tab.Screen
         name="Dashboard"
         component={DashboardScreen}
         options={{
@@ -72,16 +82,6 @@ function BottomTabs() {
           ...options,
           tabBarIcon: () => (
             <AntDesign name="arrowdown" size={24} color="white" />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Settings"
-        component={SettingsScreen}
-        options={{
-          ...options,
-          tabBarIcon: () => (
-            <MaterialIcons name="privacy-tip" size={24} color="white" />
           ),
         }}
       />
@@ -142,6 +142,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
         </Button>
         {[...Array(walletState.get().accounts).keys()].map((_, i) => (
           <DrawerItem
+            key={String("wallet-" + i)}
             label={() => (
               <Text color="#94F3E4">
                 {maskedAddress(

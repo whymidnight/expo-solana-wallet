@@ -40,13 +40,13 @@ const Tab: FC<TabProps> = ({
       {
         borderColor: "0px rgba(0, 0, 0, 0)",
         borderStyle: "solid",
-        borderWidth: "4px 1px 2px",
+        borderWidth: 4,
         borderBottomColor: "#37AA9C",
       },
       {
         borderColor: "0px rgba(0, 0, 0, 0)",
         borderStyle: "solid",
-        borderWidth: "4px 1px 2px",
+        borderWidth: 4,
         borderBottomColor: "rgba(0, 0, 0, 0.0)",
       },
     ];
@@ -67,7 +67,7 @@ const Tab: FC<TabProps> = ({
         style: {
           borderColor: "0px rgba(0, 0, 0, 0)",
           borderStyle: "solid",
-          borderWidth: "4px 1px 2px",
+          borderWidth: 4,
           borderBottomColor: "rgba(0, 0, 0, 0.0)",
         },
       });
@@ -77,7 +77,7 @@ const Tab: FC<TabProps> = ({
         style: {
           borderColor: "0px rgba(0, 0, 0, 0)",
           borderStyle: "solid",
-          borderWidth: "4px 1px 2px",
+          borderWidth: 4,
           borderBottomColor: "#37AA9C",
         },
       });

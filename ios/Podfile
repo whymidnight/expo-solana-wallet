@@ -1,0 +1,29 @@
+require_relative '../node_modules/react-native/scripts/react_native_pods'
+require_relative '../node_modules/react-native-unimodules/cocoapods.rb'
+require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
+
+platform :ios, '15.0'
+
+target 'wallet' do
+  use_unimodules!
+  use_modular_headers!
+  config = use_native_modules!
+
+  pod 'TrustWalletCore'
+  # pod 'TrustWeb3Provider', :git => "https://github.com/whymidnight/trust-web3-provider.git"
+  pod 'FittedSheets'
+  pod 'SolanaSwift', '~> 2.4.0'
+  pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec', :modular_headers => false
+  pod "Base58Swift"
+
+  use_react_native!(:path => config["reactNativePath"])
+
+  # Uncomment to opt-in to using Flipper
+  #
+  # if !ENV['CI']
+  #   use_flipper!('Flipper' => '0.75.1', 'Flipper-Folly' => '2.5.3', 'Flipper-RSocket' => '1.3.1')
+  #   post_install do |installer|
+  #     flipper_post_install(installer)
+  #   end
+  # end
+end
