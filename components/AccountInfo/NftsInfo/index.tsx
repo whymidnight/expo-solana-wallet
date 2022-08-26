@@ -1,10 +1,10 @@
 import React from "react";
-import { Navigation } from "../../types";
+import { Navigation } from "../../../types";
 import { Divider, Box, Text, ScrollView } from "native-base";
 
-import { accountFromSeed } from "../../utils";
-import PressableListItem from "../PressableListItem";
-import { useWalletState } from "../../state/wallet";
+import { accountFromSeed } from "../../../utils";
+import PressableListItem from "../../PressableListItem";
+import { useWalletState } from "../../../state/wallet";
 import { useState, useEffect, useCallback } from "react";
 import {
   getBalance,
@@ -12,10 +12,10 @@ import {
   getTokensBalance,
   TOKENS,
   TokensBalance,
-} from "../../api";
-import { useManageState } from "../../state/manage";
+} from "../../../api";
+import { useManageState } from "../../../state/manage";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
-import { useBalanceState } from "../../state/balance";
+import { useBalanceState } from "../../../state/balance";
 
 interface Balance {
   key: string;
@@ -28,7 +28,7 @@ interface TokenInfoProps {
   refresh: boolean;
 }
 
-export const TokenInfo = ({ navigation, refresh }: TokenInfoProps) => {
+export const TagInfo = ({ navigation, refresh }: TokenInfoProps) => {
   const walletState = useWalletState().get();
   const manageState = useManageState();
   const balanceState = useBalanceState();
@@ -56,7 +56,7 @@ export const TokenInfo = ({ navigation, refresh }: TokenInfoProps) => {
       <Box backgroundColor="rgba(51, 63, 68, 0.2)" rounded="xl">
         <Box style={{ padding: 10 }}>
           <Text fontSize="xl" color="white" textAlign="left">
-            Balances
+            Tags
           </Text>
         </Box>
         <Divider style={{ backgroundColor: "#94F3E4" }} />
@@ -150,10 +150,10 @@ export const TokenInfo = ({ navigation, refresh }: TokenInfoProps) => {
     </ScrollView>
   );
 };
-export const TokensInfo = ({ navigation, refresh }: TokenInfoProps) => {
+export const NftsInfo = ({ navigation, refresh }: TokenInfoProps) => {
   return (
     <ScrollView nestedScrollEnabled={true}>
-      <TokenInfo refresh={refresh} navigation={navigation} />
+      <TagInfo refresh={refresh} navigation={navigation} />
     </ScrollView>
   );
 };

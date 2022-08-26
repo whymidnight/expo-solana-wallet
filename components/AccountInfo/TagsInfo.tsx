@@ -28,7 +28,7 @@ interface TokenInfoProps {
   refresh: boolean;
 }
 
-export const TokenInfo = ({ navigation, refresh }: TokenInfoProps) => {
+export const TagInfo = ({ navigation, refresh }: TokenInfoProps) => {
   const walletState = useWalletState().get();
   const manageState = useManageState();
   const balanceState = useBalanceState();
@@ -56,7 +56,7 @@ export const TokenInfo = ({ navigation, refresh }: TokenInfoProps) => {
       <Box backgroundColor="rgba(51, 63, 68, 0.2)" rounded="xl">
         <Box style={{ padding: 10 }}>
           <Text fontSize="xl" color="white" textAlign="left">
-            Balances
+            Tags
           </Text>
         </Box>
         <Divider style={{ backgroundColor: "#94F3E4" }} />
@@ -150,10 +150,10 @@ export const TokenInfo = ({ navigation, refresh }: TokenInfoProps) => {
     </ScrollView>
   );
 };
-export const TokensInfo = ({ navigation, refresh }: TokenInfoProps) => {
+export const TagsInfo = ({ navigation, refresh }: TokenInfoProps) => {
   return (
     <ScrollView nestedScrollEnabled={true}>
-      <TokenInfo refresh={refresh} navigation={navigation} />
+      <TagInfo refresh={refresh} navigation={navigation} />
     </ScrollView>
   );
 };

@@ -9,6 +9,7 @@
 
 #import <UIKit/UIKit.h>
 #import <React/RCTUIManager.h>
+
 #import <wallet-Swift.h>
 
 
@@ -23,7 +24,14 @@ RCT_EXPORT_MODULE(DappBrowser)
     return [DappBrowserView new];
 }
 
+RCT_EXPORT_VIEW_PROPERTY(urlProp, NSString);
 RCT_EXPORT_VIEW_PROPERTY(publicKeyProp, NSString);
 RCT_EXPORT_VIEW_PROPERTY(privateKeyProp, NSString);
+
+/*
+RCT_EXTERN_METHOD(
+  updateFromManager:(nonnull NSString *)node
+)
+*/
 
 @end

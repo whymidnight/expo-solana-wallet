@@ -38,6 +38,7 @@ import { useDappState, useUntrackedDappState } from "../state/dapp";
 
 import { observer } from "mobx-react";
 import DappBrowser from "../components/DappBrowser";
+import { useFocusEffect } from "@react-navigation/native";
 
 type Props = {
   navigation: Navigation;
@@ -55,7 +56,10 @@ const SettingsScreen = observer(({ navigation }: Props) => {
         }}
       >
         <View style={{ height: "100%", width: "100%" }}>
-          <HeaderBar toggleDrawer={() => null} />
+          <HeaderBar
+            goHome={() => navigation.navigate("Splash")}
+            toggleDrawer={() => null}
+          />
           <Content setPrompt={setPrompt} />
         </View>
       </Box>
@@ -73,8 +77,10 @@ const Content = ({ setPrompt }) => {
 
 const BrowserObserver = () => {
   const walletState = useWalletState();
+  const dappState = useDappState();
   const [publicKey, setPublicKey] = useState<string | null>(null);
   const [privateKey, setPrivateKey] = useState<string | null>(null);
+  const [url, setUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const gotWalletState = walletState.get();
@@ -87,27 +93,18 @@ const BrowserObserver = () => {
     setPublicKey(account.publicKey.toString());
 
     setPrivateKey(bs58.encode(account.secretKey));
+
+    setUrl(dappState.get().url);
   }, []);
 
   return (
     <>
-      {publicKey !== null && privateKey !== null && (
-        <DappBrowser publicKey={publicKey} privateKey={privateKey} />
+      {publicKey !== null && privateKey !== null && url !== null && (
+        <DappBrowser url={url} publicKey={publicKey} privateKey={privateKey} />
       )}
     </>
   );
 };
 
-const ModalObserver = () => {
-  return (
-    <>
-      <Box height="20%">
-        <Text color="white" alignItems="center" justifyContent="center">
-          {`hello`}
-        </Text>
-      </Box>
-    </>
-  );
-};
-
 export default SettingsScreen;
+

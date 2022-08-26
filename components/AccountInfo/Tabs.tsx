@@ -1,5 +1,7 @@
 import React, { memo, FC } from "react";
 
+import { TABS } from "./index";
+
 import {
   Badge,
   Spacer,
@@ -23,7 +25,10 @@ type TabProps = {
   activeTab: string;
   setActiveTab: any;
 } & IBoxProps;
-type TabsProps = {} & IBoxProps;
+type TabsProps = {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+} & IBoxProps;
 
 const Tab: FC<TabProps> = ({
   label,
@@ -86,6 +91,7 @@ const Tab: FC<TabProps> = ({
 
   return (
     <Button
+      width="33.333%"
       backgroundColor="rgba(0, 0, 0, 0.0)"
       justifyContent="center"
       alignItems="center"
@@ -103,12 +109,15 @@ const Tab: FC<TabProps> = ({
     </Button>
   );
 };
-const Tabs: FC<TabsProps> = ({ children, ...rest }) => {
-  const TABS = ["Tokens", "NFTs", "History"];
-  const [activeTab, setActiveTab] = React.useState(TABS[0]);
+const Tabs: FC<TabsProps> = ({
+  activeTab,
+  setActiveTab,
+  children,
+  ...rest
+}) => {
   return (
-    <>
-      <HStack justifyContent="space-evenly">
+    <Box justifyContent="center" alignItems="center">
+      <HStack justifyContent="space-around">
         <Tab
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -126,7 +135,7 @@ const Tabs: FC<TabsProps> = ({ children, ...rest }) => {
         />
       </HStack>
       <Divider backgroundColor="#333F44" />
-    </>
+    </Box>
   );
 };
 

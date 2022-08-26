@@ -68,7 +68,14 @@ const PriceHeader = () => {
         }
       >
         <HStack>
-          <Text fontSize="xl" color="white">
+          <Text
+            fontSize="xl"
+            color="white"
+            shadow="8"
+            style={{
+              shadowColor: "#94F3E4",
+            }}
+          >
             {maskedAddress(
               accountFromSeed(
                 walletState.get().wallet!.seed,
@@ -83,10 +90,24 @@ const PriceHeader = () => {
           </Text>
         </HStack>
       </Pressable>
-      <Text fontSize="32" color="white">
+      <Text
+        fontSize="32"
+        color="white"
+        shadow="8"
+        style={{
+          shadowColor: "#94F3E4",
+        }}
+      >
         {`$${balance.usd.toFixed(2)}`}
       </Text>
-      <Text fontSize="md" color="white">
+      <Text
+        fontSize="md"
+        color="white"
+        shadow="8"
+        style={{
+          shadowColor: "#94F3E4",
+        }}
+      >
         0.00% (0.00) Today
       </Text>
     </Container>

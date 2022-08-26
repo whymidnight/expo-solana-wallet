@@ -17,7 +17,6 @@ import {
   OnboardingScreen,
   SetPinScreen,
   DashboardScreen,
-  ReceiveScreen,
   ManageScreen,
   SettingsScreen,
   BackupScreen,
@@ -52,16 +51,6 @@ function BottomTabs() {
   return (
     <Tab.Navigator>
       <Tab.Screen
-        name="Settings"
-        component={SettingsScreen}
-        options={{
-          ...options,
-          tabBarIcon: () => (
-            <MaterialIcons name="privacy-tip" size={24} color="white" />
-          ),
-        }}
-      />
-      <Tab.Screen
         name="Dashboard"
         component={DashboardScreen}
         options={{
@@ -76,12 +65,12 @@ function BottomTabs() {
         }}
       />
       <Tab.Screen
-        name="Receive"
-        component={ReceiveScreen}
+        name="Browser"
+        component={SettingsScreen}
         options={{
           ...options,
           tabBarIcon: () => (
-            <AntDesign name="arrowdown" size={24} color="white" />
+            <MaterialIcons name="privacy-tip" size={24} color="white" />
           ),
         }}
       />
@@ -113,7 +102,6 @@ export default function Onboarding() {
 }
 
 const Stack = createNativeStackNavigator();
-const HiddenStack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 
 //@ts-ignore
@@ -162,6 +150,8 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
     </DrawerContentScrollView>
   );
 }
+
+const HiddenStack = createNativeStackNavigator();
 const Hidden = () => {
   return (
     <HiddenStack.Navigator>
@@ -173,6 +163,19 @@ const Hidden = () => {
     </HiddenStack.Navigator>
   );
 };
+
+const Landing = () => {
+  return (
+    <HiddenStack.Navigator>
+      <HiddenStack.Screen
+        name="Splash"
+        component={DashboardScreen}
+        options={{ headerShown: false }}
+      />
+    </HiddenStack.Navigator>
+  );
+};
+
 const AccountDrawer = () => {
   return (
     <Drawer.Navigator
@@ -180,6 +183,11 @@ const AccountDrawer = () => {
       useLegacyImplementation={true}
       screenOptions={{ headerShown: false }}
     >
+      <Stack.Screen
+        name="Dashboard"
+        component={Landing}
+        options={{ headerShown: false }}
+      />
       <Drawer.Screen name="Home" component={BottomTabs} />
       <Stack.Screen
         name="Hidden"

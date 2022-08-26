@@ -48,7 +48,6 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useWalletState } from "../state/wallet";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { useManageState } from "../state/manage";
-import { useBalanceState } from "../state/balance";
 
 type Props = {
   navigation: Navigation;
@@ -60,12 +59,8 @@ interface TransactionListItem {
 }
 
 const ManageScreen = ({ navigation }: Props) => {
-  const wallet = useStoreState((state) => state.wallet);
-  const accounts = useStoreState((state) => state.accounts);
-
   const walletState = useWalletState();
   const manageState = useManageState();
-  const balanceState = useBalanceState();
 
   const route = useRoute();
 
@@ -111,7 +106,7 @@ const ManageScreen = ({ navigation }: Props) => {
       setTransferText("Sending transfer...");
 
       const amountFmt =
-        Number(toAmount) * Math.pow(10, manageState.get().meta!.decimals);
+        Number(toAmount) * Math.pow(10, manageState.get().meta.decimals);
 
       if (manageState.get().currency === "native") {
         await transaction(account, toAddress, amountFmt);
@@ -348,222 +343,7 @@ const ManageScreen = ({ navigation }: Props) => {
           />
         }
       >
-        <Box pt="20%">
-          <Box
-            rounded="xl"
-            justifyContent="center"
-            alignItems="center"
-            m="5"
-            height="20"
-          >
-            <HStack alignItems="center" justifyContent="space-around">
-              <Heading fontSize="4xl" color="white">
-                {Number(
-                  balanceState.get()[
-                    manageState.get().currencyAddress!.toString()
-                  ].uiAmount
-                )}{" "}
-              </Heading>
-              <Pressable
-                style={{
-                  borderColor: "0px rgba(0, 0, 0, 0)",
-                  borderBottomColor: "4px rgb(55, 170, 156)",
-                  borderWidth: 2,
-                  borderStyle: "solid",
-                }}
-              >
-                <HStack m="2">
-                  <VStack>
-                    <Heading fontSize="4xl" color="white">
-                      {manageState.get().meta!.symbol}
-                    </Heading>
-                  </VStack>
-                </HStack>
-              </Pressable>
-            </HStack>
-          </Box>
-          <Box height="50" alignItems="center" width="100%">
-            <Box width="50%" alignItems="center" flexDirection="row">
-              <Box pr="15" alignItems="center" width="50%">
-                <Button
-                  backgroundColor="#37AA9C"
-                  rounded="3xl"
-                  width="100"
-                  onPress={() => {
-                    setShowModal(true);
-                    setToAmount(0);
-                    setToAddress("");
-                    setIsProcessing(false);
-                  }}
-                >
-                  Send
-                </Button>
-              </Box>
-              <Box pl="15" alignItems="center" width="50%">
-                <Button backgroundColor="#37AA9C" rounded="3xl" width="100">
-                  Receive
-                </Button>
-              </Box>
-            </Box>
-          </Box>
-          <Heading size="md" pt="5" pl="8" color="white">
-            Recent Transactions
-          </Heading>
-          <Box
-            m="3"
-            pl="3"
-            pr="3"
-            height="400"
-            rounded="xl"
-            backgroundColor="rgba(51, 63, 68, 0.2)"
-          >
-            {Object.keys(history).length > 0 ? (
-              <FlatList
-                data={Object.keys(history)}
-                renderItem={(transactionSignature) => {
-                  const gotWalletState = walletState.get();
-                  const account = accountFromSeed(
-                    gotWalletState.wallet!.seed,
-                    gotWalletState.selectedAccount,
-                    "bip44Change",
-                    0
-                  );
-                  //@ts-ignore
-                  const item = history[transactionSignature.item];
-
-                  const actions = ["Sent", "Received"];
-                  const directions = ["To", "From"];
-                  let subjugate = "";
-                  let tion = -1;
-
-                  if (item.source === account.publicKey.toString()) {
-                    tion = 0;
-                    subjugate = item.destination;
-                  }
-                  if (item.destination === account.publicKey.toString()) {
-                    tion = 1;
-                    subjugate = item.source;
-                  }
-
-                  let amountFmt = 0;
-                  if (manageState.get().currency === "native") {
-                    if (item.source === account.publicKey.toString()) {
-                      tion = 0;
-                      subjugate = item.destination;
-                    }
-                    if (item.destination === account.publicKey.toString()) {
-                      tion = 1;
-                      subjugate = item.source;
-                    }
-                  }
-                  if (manageState.get().currency === "token") {
-                    if (item.source === manageState.get().meta.ata) {
-                      tion = 0;
-                      subjugate = item.destination;
-                    }
-                    if (item.destination === manageState.get().meta.ata) {
-                      tion = 1;
-                      subjugate = item.source;
-                    }
-                  }
-                  amountFmt =
-                    item.amount / Math.pow(10, manageState.get().meta.decimals);
-
-                  return (
-                    <Box
-                      m="2"
-                      pl="3"
-                      pr="3"
-                      py="2"
-                      rounded="xl"
-                      backgroundColor="#1A1A1B"
-                    >
-                      <Pressable
-                        onPress={() =>
-                          Linking.openURL(
-                            `https://solana.fm/tx/${transactionSignature.item}`
-                          )
-                        }
-                      >
-                        <HStack justifyContent="space-between">
-                          <HStack>
-                            <Box
-                              pr="3"
-                              justifyContent="center"
-                              alignItems="center"
-                            >
-                              {tion === 0 ? (
-                                <AntDesign
-                                  name="arrowup"
-                                  size={24}
-                                  color="white"
-                                />
-                              ) : (
-                                <AntDesign
-                                  name="arrowdown"
-                                  size={24}
-                                  color="white"
-                                />
-                              )}
-                            </Box>
-                            <VStack>
-                              <Text
-                                alignSelf="flex-start"
-                                fontSize={12}
-                                color="white"
-                              >
-                                {actions[tion]}{" "}
-                                {Number(amountFmt).toFixed(
-                                  manageState.get().meta.decimals > 3
-                                    ? 4
-                                    : manageState.get().meta.decimals
-                                )}{" "}
-                                {manageState.get().meta.symbol}
-                              </Text>
-                              <Text
-                                fontSize={12}
-                                alignSelf="flex-start"
-                                color="white"
-                              >
-                                {directions[tion]} {maskedAddress(subjugate)}
-                              </Text>
-                            </VStack>
-                          </HStack>
-                          <VStack>
-                            <Text
-                              fontSize={12}
-                              alignSelf="flex-end"
-                              color="white"
-                            >
-                              {new Date(item.timestamp * 1000).toLocaleString()}
-                            </Text>
-                            <Text
-                              fontSize={12}
-                              alignSelf="flex-end"
-                              color="white"
-                            >
-                              {"Via "}
-                              {transactionSignature.item.slice(0, 4)}
-                              {"..."}
-                              {transactionSignature.item.slice(
-                                transactionSignature.item.length - 4,
-                                transactionSignature.item.length
-                              )}
-                            </Text>
-                          </VStack>
-                        </HStack>
-                      </Pressable>
-                    </Box>
-                  );
-                }}
-              />
-            ) : (
-              <Box height="100%" alignItems="center" justifyContent="center">
-                <Spinner color="white" />
-              </Box>
-            )}
-          </Box>
-        </Box>
+        <Box pt="20%"></Box>
       </ScrollView>
     </Background>
   );

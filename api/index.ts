@@ -12,7 +12,7 @@ import {
 } from "@solana/spl-token";
 import { Account } from "@metaplex-foundation/mpl-core";
 import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
-import {Token} from "@solana/spl-token";
+import { Token } from "@solana/spl-token";
 
 export const METADATA_PROGRAM_ID = new PublicKey(
   "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
@@ -26,11 +26,11 @@ const getPDA = async (mint: PublicKey): Promise<PublicKey> => {
   )[0];
 };
 
-
 export const TOKENS = [
   "32QvRf1cK1xutcGVFm2K84BZQNf1g2sWG1YBVRMuuTRX",
   "2m21xp8rTJ2yALTnfYS4PMGhYRFq1NoP6T5YWvzRfkYS",
   "HzbbmGHr1wzmjnJ3USHNHg4SeefTmiNAak7UdvEAzkg8",
+  "DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ",
 ];
 
 const LAMPORTS_PER_SOL = solanaWeb3.LAMPORTS_PER_SOL;
@@ -102,25 +102,24 @@ const transaction = async (from: solanaWeb3.Keypair, to, amount) => {
   );
   console.log("SIGNATURE", signature);
 };
-export const tokenTransfer = async (from: solanaWeb3.Keypair, to: PublicKey, mint: PublicKey, amount: number) => {
+export const tokenTransfer = async (
+  from: solanaWeb3.Keypair,
+  to: PublicKey,
+  mint: PublicKey,
+  amount: number
+) => {
   const connection = createConnection();
   console.log(from, to, mint);
 
   var transaction = new solanaWeb3.Transaction();
-    
+
   const fromAta = await findAssociatedTokenAddress(from.publicKey, mint);
   const toAta = await findAssociatedTokenAddress(to, mint);
   const toAtaInfo = await connection.getAccountInfo(toAta);
   if (toAtaInfo === null) {
     transaction.add(
-      createAssociatedTokenAccountInstruction(
-        from.publicKey,
-        toAta,
-        to,
-        mint,
-      )
+      createAssociatedTokenAccountInstruction(from.publicKey, toAta, to, mint)
     );
-
   }
 
   console.log(".....");
@@ -171,12 +170,13 @@ export interface TokensBalance {
 }
 
 const getTokensBalance = async (publicKey: string): Promise<TokensBalance> => {
+  const newTokens = TOKENS.slice(0, TOKENS.length - 1);
   const connection = createConnection();
 
   const tokensBalance: TokensBalance = {};
 
   const metadataPdas = await Promise.all(
-    TOKENS.map(async (token) => await Metadata.getPDA(new PublicKey(token)))
+    newTokens.map(async (token) => await Metadata.getPDA(new PublicKey(token)))
   );
 
   const metadataPdasInfos = await connection.getMultipleAccountsInfo(
@@ -185,30 +185,69 @@ const getTokensBalance = async (publicKey: string): Promise<TokensBalance> => {
 
   for (var i = 0; i < TOKENS.length; i++) {
     const token = TOKENS[i];
-    const {
-      data: { data: metadata },
-    } = Metadata.from(new Account(metadataPdas[i], metadataPdasInfos[i]!));
 
-    const account = await findAssociatedTokenAddress(
-      publicKeyFromString(publicKey),
-      publicKeyFromString(token)
-    );
+    if (i < TOKENS.length - 1) {
+      const {
+        data: { data: metadata },
+      } = Metadata.from(new Account(metadataPdas[i], metadataPdasInfos[i]!));
 
-    try {
-      const balance = await connection.getTokenAccountBalance(
-        publicKeyFromString(account.toString())
+      const account = await findAssociatedTokenAddress(
+        publicKeyFromString(publicKey),
+        publicKeyFromString(token)
       );
 
-      tokensBalance[token] = {
-        mint: token,
-        ata: account.toString(),
-        name: metadata.name,
-        symbol: metadata.symbol,
-        amount: balance.value.amount,
-        uiAmount: balance.value.uiAmount!,
-        decimals: balance.value.decimals,
-      };
-    } catch (_) {}
+      try {
+        const balance = await connection.getTokenAccountBalance(
+          publicKeyFromString(account.toString())
+        );
+
+        tokensBalance[token] = {
+          mint: token,
+          ata: account.toString(),
+          name: metadata.name,
+          symbol: metadata.symbol,
+          amount: balance.value.amount,
+          uiAmount: balance.value.uiAmount!,
+          decimals: balance.value.decimals,
+        };
+      } catch (_) {}
+    } else {
+      const metadata = {
+        name: "DUST Protocol",
+        symbol: "DUST",
+      }
+      const account = await findAssociatedTokenAddress(
+        publicKeyFromString(publicKey),
+        publicKeyFromString(token)
+      );
+
+      try {
+        const balance = await connection.getTokenAccountBalance(
+          publicKeyFromString(account.toString())
+        );
+
+        tokensBalance[token] = {
+          mint: token,
+          ata: account.toString(),
+          name: metadata.name,
+          symbol: metadata.symbol,
+          amount: balance.value.amount,
+          uiAmount: balance.value.uiAmount!,
+          decimals: balance.value.decimals,
+        };
+      } catch (_) {}
+    }
+  }
+
+  const solBalance = await connection.getBalance(new PublicKey(publicKey));
+  tokensBalance[publicKey] = {
+    mint: publicKey.toString(),
+    ata: publicKey.toString(),
+    name: "Solana",
+    symbol: "SOL",
+    amount: solBalance.toString(),
+    uiAmount: solBalance / LAMPORTS_PER_SOL,
+    decimals: 9,
   }
 
   return tokensBalance;
@@ -315,29 +354,27 @@ const getHistory = async (
         try {
           const transferIx = decodeTransferInstruction(ix);
           const data = {
-          status: "success",
-          timestamp: tx?.blockTime,
-          source: transferIx.keys.source.pubkey.toString(),
-          destination: transferIx.keys.destination.pubkey.toString(),
-          amount: Number(transferIx.data.amount),
-        }
-          const accData = { ...acc, [tx?.transaction.signatures[0]!]: data};
+            status: "success",
+            timestamp: tx?.blockTime,
+            source: transferIx.keys.source.pubkey.toString(),
+            destination: transferIx.keys.destination.pubkey.toString(),
+            amount: Number(transferIx.data.amount),
+          };
+          const accData = { ...acc, [tx?.transaction.signatures[0]!]: data };
           return accData;
-        } catch (e) {
-        }
+        } catch (e) {}
         try {
           const transferIx = decodeTransferCheckedInstruction(ix);
           const data = {
-          status: "success",
-          timestamp: tx?.blockTime,
-          source: transferIx.keys.source.pubkey.toString(),
-          destination: transferIx.keys.destination.pubkey.toString(),
-          amount: Number(transferIx.data.amount),
-        }
-          const accData = { ...acc, [tx?.transaction.signatures[0]!]: data};
+            status: "success",
+            timestamp: tx?.blockTime,
+            source: transferIx.keys.source.pubkey.toString(),
+            destination: transferIx.keys.destination.pubkey.toString(),
+            amount: Number(transferIx.data.amount),
+          };
+          const accData = { ...acc, [tx?.transaction.signatures[0]!]: data };
           return accData;
-        } catch (e) {
-        }
+        } catch (e) {}
         return { ...acc };
       }, {});
 

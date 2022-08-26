@@ -238,7 +238,7 @@ PODS:
     - React-cxxreact (= 0.63.4)
     - React-jsi (= 0.63.4)
   - React-jsinspector (0.63.4)
-  - react-native-get-random-values (1.7.2):
+  - react-native-get-random-values (1.8.0):
     - React-Core
   - react-native-safe-area-context (3.2.0):
     - React-Core
@@ -304,6 +304,8 @@ PODS:
     - React-Core (= 0.63.4)
     - React-cxxreact (= 0.63.4)
     - React-jsi (= 0.63.4)
+  - ReactNativeART (1.2.0):
+    - React
   - RNCAsyncStorage (1.15.17):
     - React-Core
   - RNGestureHandler (1.10.3):
@@ -356,7 +358,6 @@ PODS:
     - TrustWalletCore/Types
   - TrustWalletCore/Types (2.9.8):
     - SwiftProtobuf
-  - TrustWeb3Provider (0.4.0)
   - TweetNacl (1.0.2)
   - UMAppLoader (2.2.0)
   - UMCore (7.1.2)
@@ -421,6 +422,7 @@ DEPENDENCIES:
   - React-RCTText (from `../node_modules/react-native/Libraries/Text`)
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - "ReactNativeART (from `../node_modules/@react-native-community/art`)"
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
@@ -428,7 +430,6 @@ DEPENDENCIES:
   - RNSVG (from `../node_modules/react-native-svg`)
   - SolanaSwift (~> 2.4.0)
   - TrustWalletCore
-  - TrustWeb3Provider (from `https://github.com/whymidnight/trust-web3-provider.git`)
   - UMAppLoader (from `../node_modules/unimodules-app-loader/ios`)
   - "UMCore (from `../node_modules/@unimodules/core/ios`)"
   - "UMReactNativeAdapter (from `../node_modules/@unimodules/react-native-adapter/ios`)"
@@ -537,6 +538,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/Libraries/Vibration"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  ReactNativeART:
+    :path: "../node_modules/@react-native-community/art"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNGestureHandler:
@@ -547,8 +550,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-screens"
   RNSVG:
     :path: "../node_modules/react-native-svg"
-  TrustWeb3Provider:
-    :git: https://github.com/whymidnight/trust-web3-provider.git
   UMAppLoader:
     :path: "../node_modules/unimodules-app-loader/ios"
   UMCore:
@@ -559,11 +560,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/unimodules-task-manager-interface/ios"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
-
-CHECKOUT OPTIONS:
-  TrustWeb3Provider:
-    :commit: c50f0ea737c3e90c7a58ba6290988619fa9c663b
-    :git: https://github.com/whymidnight/trust-web3-provider.git
 
 SPEC CHECKSUMS:
   Base58Swift: 53d551f0b33d9478fa63b3445e453a772d6b31a7
@@ -601,7 +597,7 @@ SPEC CHECKSUMS:
   React-jsi: a0418934cf48f25b485631deb27c64dc40fb4c31
   React-jsiexecutor: 93bd528844ad21dc07aab1c67cb10abae6df6949
   React-jsinspector: 58aef7155bc9a9683f5b60b35eccea8722a4f53a
-  react-native-get-random-values: 30b3f74ca34e30e2e480de48e4add2706a40ac8f
+  react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-safe-area-context: f0906bf8bc9835ac9a9d3f97e8bde2a997d8da79
   react-native-webview: 193d233c29eacce1f42ca2637dab7ba79c25a6de
   React-RCTActionSheet: 89a0ca9f4a06c1f93c26067af074ccdce0f40336
@@ -614,6 +610,7 @@ SPEC CHECKSUMS:
   React-RCTText: 5c51df3f08cb9dedc6e790161195d12bac06101c
   React-RCTVibration: ae4f914cfe8de7d4de95ae1ea6cc8f6315d73d9d
   ReactCommon: 73d79c7039f473b76db6ff7c6b159c478acbbb3b
+  ReactNativeART: 78edc68dd4a1e675338cd0cd113319cf3a65f2ab
   RNCAsyncStorage: 6bd5a7ba3dde1c3facba418aa273f449bdc5437a
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
   RNReanimated: e5040efc7c90da0b190a6525fcfc7e1e75973b21
@@ -624,7 +621,6 @@ SPEC CHECKSUMS:
   SwiftProtobuf: 59d9ea2eb5f84b509f32d170a65f3348ae758f1e
   Task_retrying: 9e19177e42b162d1d54317f9cfcbabc01d057c38
   TrustWalletCore: 53f09313edb1c010de78314d023c67d2d4654864
-  TrustWeb3Provider: c4fd1102867679e39224abf4449748cb4bd2a3a3
   TweetNacl: 3abf4d1d2082b0114e7a67410e300892448951e6
   UMAppLoader: 21af63390e55c82e037fb9752d93114a80ecf16e
   UMCore: ce3a4faa010239063b8343895b29a6d97b01069d
@@ -633,6 +629,6 @@ SPEC CHECKSUMS:
   Yoga: 4bd86afe9883422a7c4028c00e34790f560923d6
   ZXingObjC: fdbb269f25dd2032da343e06f10224d62f537bdb
 
-PODFILE CHECKSUM: 0ca7ad14a1ec118cc0ea5464787ba5327deca8f6
+PODFILE CHECKSUM: e713709382c2871c0369cd1e9746ca7793bbdb98
 
 COCOAPODS: 1.11.3

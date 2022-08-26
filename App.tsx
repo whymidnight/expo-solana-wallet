@@ -1,5 +1,5 @@
-import { StatusBar } from "expo-status-bar";
 import React from "react";
+import { StatusBar } from "expo-status-bar";
 import { StoreProvider } from "easy-peasy";
 
 import "./global";
@@ -27,6 +27,7 @@ import * as Font from "expo-font";
 // import {} from "expo-splash-screen";
 import { walletState } from "./state/wallet";
 import { registerRootComponent } from "expo";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const newColorTheme = {
   brand: {
@@ -101,9 +102,11 @@ export default function App() {
   } else {
     return (
       <NativeBaseProvider theme={theme}>
-        <StoreProvider store={store}>
-          <Navigation />
-        </StoreProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <StoreProvider store={store}>
+            <Navigation />
+          </StoreProvider>
+        </GestureHandlerRootView>
       </NativeBaseProvider>
     );
   }

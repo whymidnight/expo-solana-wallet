@@ -39,15 +39,19 @@ const PressableListItem: FC<PressableListItemProps> = ({
         backgroundColor="#1A1A1B"
         _hover={{
           background: "#37AA9C",
+          borderRadius: 50,
         }}
         _focus={{
           background: "#37AA9C",
+          borderRadius: 50,
         }}
         _focusVisible={{
           background: "#37AA9C",
+          borderRadius: 50,
         }}
         _pressed={{
           background: "#333F44",
+          borderRadius: 50,
         }}
         alignItems="center"
         {...rest}
